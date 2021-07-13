@@ -1,0 +1,53 @@
+# Docker
+# Build a Docker image
+# https://docs.microsoft.com/azure/devops/pipelines/languages/docker
+
+trigger:
+- none
+
+resources:
+- repo: self
+pool:
+ name: DockerWin
+  
+variables:
+  ImageName: 'sushildeep:$(Build.BuildId)'
+
+stages:
+- stage: Build
+  displayName: Build image
+  jobs:  
+  - job: Build
+    displayName: Build and push Docker image
+    steps:
+    - task: Docker@1      
+      inputs:
+        containerregistrytype: 'Container Registry'
+        dockerRegistryEndpoint: 'ACR'
+        command: 'Build an image'
+        dockerFile: '**/Dockerfile'
+        imageName: '$(ImageName)'
+      displayName: 'Build the Docker image'
+
+    - task: Docker@1      
+      inputs:
+        containerregistrytype: 'Container Registry'
+        dockerRegistryEndpoint: 'ACR'
+        command: 'Push an image'
+        imageName: '$(ImageName)'
+      condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+      displayName: 'Push the Docker image to ACR'
+      
+- stage: DeploytoDev
+  displayName: Deployment to Azure APP
+  jobs:
+  - job: Deploytodev
+    steps:
+      - task: AzureWebAppContainer@1
+        inputs:
+          azureSubscription: 'webApp'
+          appName: 'Node2'
+          deployToSlotOrASE: true
+          resourceGroupName: 'onboarding'
+          slotName: 'production'
+          containers: 'onboarding1.azurecr.io/sushildeep:latest'
