@@ -50,4 +50,4 @@ stages:
           deployToSlotOrASE: true
           resourceGroupName: 'onboarding'
           slotName: 'production'
-          containers: 'onboarding1.azurecr.io/sushildeep:latest'
+          containers: 'onboarding1.azurecr.io/sushildeep:69'
